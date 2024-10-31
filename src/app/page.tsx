@@ -1,101 +1,186 @@
-import Image from "next/image";
+'use client'
+
+import { useState } from 'react'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ThemeToggle } from "@/components/theme-toggle"
+
+interface StudentData {
+  id: number
+  name: string
+  course: string
+  grade: string
+}
+
+// Mock data - this will be replaced with MySQL data later
+const initialData: StudentData[] = [
+  { id: 1, name: 'John Doe', course: 'Mathematics', grade: 'A' },
+  { id: 2, name: 'Jane Smith', course: 'Physics', grade: 'B' },
+  { id: 3, name: 'Alice Johnson', course: 'Chemistry', grade: 'A-' },
+  { id: 4, name: 'Bob Brown', course: 'Biology', grade: 'B+' },
+  { id: 5, name: 'Charlie Davis', course: 'Computer Science', grade: 'A+' },
+]
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [tentakod, setTentakod] = useState<string>('')
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isFetching, setIsFetching] = useState<boolean>(false)
+  const [data, setData] = useState<StudentData[]>(initialData)
+  const [editedData, setEditedData] = useState<StudentData[]>(initialData)
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleGetData = async (): Promise<void> => {
+    if (!tentakod.trim()) {
+      alert('Please enter a tentakod')
+      return
+    }
+
+    setIsFetching(true)
+    try {
+      // This will be replaced with actual MySQL query later
+      // Example query: SELECT * FROM students WHERE tentakod = ?
+      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
+      
+      // Simulate filtered data based on tentakod
+      const filteredData = initialData.filter(item => item.id === parseInt(tentakod) || item.id % 2 === 0)
+      setData(filteredData)
+      setEditedData(filteredData)
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      alert('Error fetching data. Please try again.')
+    } finally {
+      setIsFetching(false)
+    }
+  }
+
+  const handleUpdate = (): void => {
+    setIsLoading(true)
+    // Simulate API call - will be replaced with MySQL UPDATE statement later
+    // Example query: UPDATE students SET name = ?, course = ?, grade = ? WHERE id = ?
+    setTimeout(() => {
+      setData(editedData)
+      setIsLoading(false)
+    }, 1000)
+  }
+
+  const handleSendToLadok = (): void => {
+    alert(`Sending data with tentakod: ${tentakod}`)
+  }
+
+  const handleCellEdit = (id: number, field: keyof StudentData, value: string) => {
+    setEditedData(prevData =>
+      prevData.map(row =>
+        row.id === id ? { ...row, [field]: value } : row
+      )
+    )
+  }
+
+  // Check if there are unsaved changes
+  const hasChanges = JSON.stringify(data) !== JSON.stringify(editedData)
+
+  return (
+    <div className="min-h-screen">
+      <header className="border-b">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center relative">
+          <div className="absolute left-4">
+            {/* Empty div for spacing */}
+          </div>
+          <h1 className="text-2xl font-bold flex-grow text-center">LTU-Wizard</h1>
+          <div className="absolute right-4">
+            <ThemeToggle />
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </header>
+
+      <div className="container mx-auto p-4">
+        <Card className="w-full max-w-4xl mx-auto">
+          <CardHeader>
+            <CardTitle>Student Data</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex space-x-4 items-center">
+                <Input
+                  type="text"
+                  placeholder="tentakod"
+                  value={tentakod}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTentakod(e.target.value)}
+                  className="max-w-sm"
+                />
+                <Button 
+                  onClick={handleGetData} 
+                  disabled={isFetching}
+                  variant="secondary"
+                >
+                  {isFetching ? 'Fetching...' : 'Get Data'}
+                </Button>
+              </div>
+              <div className="border rounded-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Course</TableHead>
+                      <TableHead>Grade</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {(isLoading || isFetching) ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center">
+                          {isFetching ? 'Fetching data...' : 'Saving changes...'}
+                        </TableCell>
+                      </TableRow>
+                    ) : editedData.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center">
+                          No data found for this tentakod
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      editedData.map((row) => (
+                        <TableRow key={row.id}>
+                          <TableCell>{row.id}</TableCell>
+                          <TableCell>
+                            <Input
+                              value={row.name}
+                              onChange={(e) => handleCellEdit(row.id, 'name', e.target.value)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              value={row.course}
+                              onChange={(e) => handleCellEdit(row.id, 'course', e.target.value)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              value={row.grade}
+                              onChange={(e) => handleCellEdit(row.id, 'grade', e.target.value)}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="flex space-x-4">
+                <Button 
+                  onClick={handleUpdate} 
+                  disabled={isLoading || !hasChanges}
+                  variant={hasChanges ? "default" : "secondary"}
+                >
+                  {isLoading ? 'Saving...' : hasChanges ? 'Save Changes' : 'No Changes'}
+                </Button>
+                <Button onClick={handleSendToLadok}>Send to Ladok</Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
-  );
+  )
 }
