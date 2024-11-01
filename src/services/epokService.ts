@@ -1,5 +1,11 @@
 import { db } from '@/lib/db'
-import { LadokModule, LadokGrade } from '@/types/ladok'
+
+interface LadokModule {
+  idepok: string
+  uppgift: string
+  kurskod: string
+  display: string
+}
 
 export async function getLadokModules(kurskod: string): Promise<LadokModule[]> {
   try {
@@ -7,20 +13,14 @@ export async function getLadokModules(kurskod: string): Promise<LadokModule[]> {
       'SELECT idepok, uppgift, kurskod FROM epok WHERE kurskod = ? ORDER BY idepok',
       [kurskod]
     )
-    return rows as LadokModule[]
+    
+    // Transform the rows to use uppgift as the display and value
+    return (rows as LadokModule[]).map(row => ({
+      ...row,
+      display: row.uppgift // Just use the uppgift text
+    }))
   } catch (error) {
     console.error('Database error:', error)
     throw new Error('Failed to fetch Ladok modules')
-  }
-}
-
-export async function sendGradesToLadok(grades: LadokGrade[]): Promise<void> {
-  try {
-    // This will be implemented later when connecting to Ladok
-    // For now, it's just a placeholder
-    console.log('Sending grades to Ladok:', grades)
-  } catch (error) {
-    console.error('Error sending grades to Ladok:', error)
-    throw new Error('Failed to send grades to Ladok')
   }
 } 
