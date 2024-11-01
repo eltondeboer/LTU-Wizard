@@ -6,26 +6,17 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { StudentData } from '@/types/student'
 
-interface StudentData {
-  id: number
-  name: string
-  course: string
-  grade: string
-}
+const GRADE_OPTIONS = ["U", "G", "VG"] as const
+type Grade = typeof GRADE_OPTIONS[number]
 
-// Mock data - this will be replaced with MySQL data later
-const initialData: StudentData[] = [
-  { id: 1, name: 'John Doe', course: 'Mathematics', grade: 'A' },
-  { id: 2, name: 'Jane Smith', course: 'Physics', grade: 'B' },
-  { id: 3, name: 'Alice Johnson', course: 'Chemistry', grade: 'A-' },
-  { id: 4, name: 'Bob Brown', course: 'Biology', grade: 'B+' },
-  { id: 5, name: 'Charlie Davis', course: 'Computer Science', grade: 'A+' },
-]
+// Update the initial data structure to match the database
+const initialData: StudentData[] = []
 
 export default function Home() {
   const [kurskod, setKurskod] = useState<string>('')
-  const [uppgift, setUppgift] = useState<string>('')
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isFetching, setIsFetching] = useState<boolean>(false)
   const [data, setData] = useState<StudentData[]>(initialData)
@@ -36,21 +27,16 @@ export default function Home() {
       alert('Please enter a kurskod')
       return
     }
-    if (!uppgift.trim()) {
-      alert('Please enter an uppgift')
-      return
-    }
 
     setIsFetching(true)
     try {
-      // This will be replaced with actual MySQL query later
-      // Example query: SELECT * FROM students WHERE kurskod = ? AND uppgift = ?
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
-      
-      // Simulate filtered data based on kurskod
-      const filteredData = initialData.filter(item => item.id === parseInt(kurskod) || item.id % 2 === 0)
-      setData(filteredData)
-      setEditedData(filteredData)
+      const response = await fetch(`/api/students?kurskod=${kurskod}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch data')
+      }
+      const fetchedData = await response.json()
+      setData(fetchedData)
+      setEditedData(fetchedData)
     } catch (error) {
       console.error('Error fetching data:', error)
       alert('Error fetching data. Please try again.')
@@ -61,8 +47,7 @@ export default function Home() {
 
   const handleUpdate = (): void => {
     setIsLoading(true)
-    // Simulate API call - will be replaced with MySQL UPDATE statement later
-    // Example query: UPDATE students SET name = ?, course = ?, grade = ? WHERE kurskod = ? AND uppgift = ?
+    // Simulate saving changes locally
     setTimeout(() => {
       setData(editedData)
       setIsLoading(false)
@@ -70,13 +55,14 @@ export default function Home() {
   }
 
   const handleSendToLadok = (): void => {
-    alert(`Sending data with kurskod: ${kurskod} and uppgift: ${uppgift}`)
+    // This will send the saved data (not the edited data) to Ladok
+    alert(`Sending saved data to Ladok for kurskod: ${kurskod}`)
   }
 
-  const handleCellEdit = (id: number, field: keyof StudentData, value: string) => {
+  const handleCellEdit = (stud_namn: string, field: keyof StudentData, value: string) => {
     setEditedData(prevData =>
       prevData.map(row =>
-        row.id === id ? { ...row, [field]: value } : row
+        row.stud_namn === stud_namn ? { ...row, [field]: value } : row
       )
     )
   }
@@ -113,13 +99,6 @@ export default function Home() {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setKurskod(e.target.value)}
                   className="max-w-[150px]"
                 />
-                <Input
-                  type="text"
-                  placeholder="uppgift"
-                  value={uppgift}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUppgift(e.target.value)}
-                  className="max-w-[150px]"
-                />
                 <Button 
                   onClick={handleGetData} 
                   disabled={isFetching}
@@ -132,10 +111,11 @@ export default function Home() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>ID</TableHead>
+                      <TableHead>Student ID</TableHead>
                       <TableHead>Name</TableHead>
-                      <TableHead>Course</TableHead>
+                      <TableHead>Date</TableHead>
                       <TableHead>Grade</TableHead>
+                      <TableHead>Assignment</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -148,31 +128,33 @@ export default function Home() {
                     ) : editedData.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={4} className="text-center">
-                          No data found for this kurskod and uppgift
+                          No data found for this kurskod
                         </TableCell>
                       </TableRow>
                     ) : (
                       editedData.map((row) => (
-                        <TableRow key={row.id}>
-                          <TableCell>{row.id}</TableCell>
+                        <TableRow key={row.stud_namn}>
+                          <TableCell>{row.stud_namn}</TableCell>
+                          <TableCell>{row.namn}</TableCell>
+                          <TableCell>{row.datum}</TableCell>
                           <TableCell>
-                            <Input
-                              value={row.name}
-                              onChange={(e) => handleCellEdit(row.id, 'name', e.target.value)}
-                            />
+                            <Select
+                              value={row.betyg_canvas}
+                              onValueChange={(value) => handleCellEdit(row.stud_namn, 'betyg_canvas', value)}
+                            >
+                              <SelectTrigger className="w-[100px]">
+                                <SelectValue placeholder="Select grade" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {GRADE_OPTIONS.map((grade) => (
+                                  <SelectItem key={grade} value={grade}>
+                                    {grade}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </TableCell>
-                          <TableCell>
-                            <Input
-                              value={row.course}
-                              onChange={(e) => handleCellEdit(row.id, 'course', e.target.value)}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              value={row.grade}
-                              onChange={(e) => handleCellEdit(row.id, 'grade', e.target.value)}
-                            />
-                          </TableCell>
+                          <TableCell>{row.uppgift}</TableCell>
                         </TableRow>
                       ))
                     )}
@@ -187,7 +169,12 @@ export default function Home() {
                 >
                   {isLoading ? 'Saving...' : hasChanges ? 'Save Changes' : 'No Changes'}
                 </Button>
-                <Button onClick={handleSendToLadok}>Send to Ladok</Button>
+                <Button 
+                  onClick={handleSendToLadok}
+                  disabled={isLoading}
+                >
+                  Send to Ladok
+                </Button>
               </div>
             </div>
           </CardContent>
