@@ -24,26 +24,31 @@ const initialData: StudentData[] = [
 ]
 
 export default function Home() {
-  const [tentakod, setTentakod] = useState<string>('')
+  const [kurskod, setKurskod] = useState<string>('')
+  const [uppgift, setUppgift] = useState<string>('')
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isFetching, setIsFetching] = useState<boolean>(false)
   const [data, setData] = useState<StudentData[]>(initialData)
   const [editedData, setEditedData] = useState<StudentData[]>(initialData)
 
   const handleGetData = async (): Promise<void> => {
-    if (!tentakod.trim()) {
-      alert('Please enter a tentakod')
+    if (!kurskod.trim()) {
+      alert('Please enter a kurskod')
+      return
+    }
+    if (!uppgift.trim()) {
+      alert('Please enter an uppgift')
       return
     }
 
     setIsFetching(true)
     try {
       // This will be replaced with actual MySQL query later
-      // Example query: SELECT * FROM students WHERE tentakod = ?
+      // Example query: SELECT * FROM students WHERE kurskod = ? AND uppgift = ?
       await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
       
-      // Simulate filtered data based on tentakod
-      const filteredData = initialData.filter(item => item.id === parseInt(tentakod) || item.id % 2 === 0)
+      // Simulate filtered data based on kurskod
+      const filteredData = initialData.filter(item => item.id === parseInt(kurskod) || item.id % 2 === 0)
       setData(filteredData)
       setEditedData(filteredData)
     } catch (error) {
@@ -57,7 +62,7 @@ export default function Home() {
   const handleUpdate = (): void => {
     setIsLoading(true)
     // Simulate API call - will be replaced with MySQL UPDATE statement later
-    // Example query: UPDATE students SET name = ?, course = ?, grade = ? WHERE id = ?
+    // Example query: UPDATE students SET name = ?, course = ?, grade = ? WHERE kurskod = ? AND uppgift = ?
     setTimeout(() => {
       setData(editedData)
       setIsLoading(false)
@@ -65,7 +70,7 @@ export default function Home() {
   }
 
   const handleSendToLadok = (): void => {
-    alert(`Sending data with tentakod: ${tentakod}`)
+    alert(`Sending data with kurskod: ${kurskod} and uppgift: ${uppgift}`)
   }
 
   const handleCellEdit = (id: number, field: keyof StudentData, value: string) => {
@@ -103,10 +108,17 @@ export default function Home() {
               <div className="flex space-x-4 items-center">
                 <Input
                   type="text"
-                  placeholder="tentakod"
-                  value={tentakod}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTentakod(e.target.value)}
-                  className="max-w-sm"
+                  placeholder="kurskod"
+                  value={kurskod}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setKurskod(e.target.value)}
+                  className="max-w-[150px]"
+                />
+                <Input
+                  type="text"
+                  placeholder="uppgift"
+                  value={uppgift}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUppgift(e.target.value)}
+                  className="max-w-[150px]"
                 />
                 <Button 
                   onClick={handleGetData} 
@@ -136,7 +148,7 @@ export default function Home() {
                     ) : editedData.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={4} className="text-center">
-                          No data found for this tentakod
+                          No data found for this kurskod and uppgift
                         </TableCell>
                       </TableRow>
                     ) : (
