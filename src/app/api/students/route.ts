@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server'
-import { getStudentsByKurskod } from '@/services/studentService'
+import { getStudentsByKurskod, getUniqueAssignments } from '@/services/studentService'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const kurskod = searchParams.get('kurskod')
+  const uppgift = searchParams.get('uppgift')
+  const fetchType = searchParams.get('type')
 
   if (!kurskod) {
     return NextResponse.json(
@@ -13,12 +15,17 @@ export async function GET(request: Request) {
   }
 
   try {
-    const students = await getStudentsByKurskod(kurskod)
-    return NextResponse.json(students)
+    if (fetchType === 'assignments') {
+      const assignments = await getUniqueAssignments(kurskod)
+      return NextResponse.json(assignments)
+    } else {
+      const students = await getStudentsByKurskod(kurskod, uppgift || undefined)
+      return NextResponse.json(students)
+    }
   } catch (error) {
     console.error('API error:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch student data' },
+      { error: 'Failed to fetch data' },
       { status: 500 }
     )
   }

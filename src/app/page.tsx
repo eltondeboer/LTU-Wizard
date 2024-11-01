@@ -17,10 +17,23 @@ const initialData: StudentData[] = []
 
 export default function Home() {
   const [kurskod, setKurskod] = useState<string>('')
+  const [selectedAssignment, setSelectedAssignment] = useState<string>('')
+  const [assignments, setAssignments] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isFetching, setIsFetching] = useState<boolean>(false)
   const [data, setData] = useState<StudentData[]>(initialData)
   const [editedData, setEditedData] = useState<StudentData[]>(initialData)
+
+  const fetchAssignments = async (kurskod: string) => {
+    try {
+      const response = await fetch(`/api/students?kurskod=${kurskod}&type=assignments`)
+      if (!response.ok) throw new Error('Failed to fetch assignments')
+      const assignments = await response.json()
+      setAssignments(assignments)
+    } catch (error) {
+      console.error('Error fetching assignments:', error)
+    }
+  }
 
   const handleGetData = async (): Promise<void> => {
     if (!kurskod.trim()) {
@@ -30,10 +43,28 @@ export default function Home() {
 
     setIsFetching(true)
     try {
-      const response = await fetch(`/api/students?kurskod=${kurskod}`)
+      await fetchAssignments(kurskod)
+      const response = await fetch(`/api/students?kurskod=${kurskod}${selectedAssignment ? `&uppgift=${selectedAssignment}` : ''}`)
       if (!response.ok) {
         throw new Error('Failed to fetch data')
       }
+      const fetchedData = await response.json()
+      setData(fetchedData)
+      setEditedData(fetchedData)
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      alert('Error fetching data. Please try again.')
+    } finally {
+      setIsFetching(false)
+    }
+  }
+
+  const handleAssignmentChange = async (value: string) => {
+    setSelectedAssignment(value)
+    setIsFetching(true)
+    try {
+      const response = await fetch(`/api/students?kurskod=${kurskod}&uppgift=${value}`)
+      if (!response.ok) throw new Error('Failed to fetch data')
       const fetchedData = await response.json()
       setData(fetchedData)
       setEditedData(fetchedData)
@@ -91,14 +122,20 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex space-x-4 items-center">
-                <Input
-                  type="text"
-                  placeholder="kurskod"
-                  value={kurskod}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setKurskod(e.target.value)}
-                  className="max-w-[150px]"
-                />
+              <div className="flex space-x-4 items-end">
+                <div className="space-y-2">
+                  <label htmlFor="kurskod" className="text-sm font-medium">
+                    Kurskod
+                  </label>
+                  <Input
+                    id="kurskod"
+                    type="text"
+                    placeholder="kurskod"
+                    value={kurskod}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setKurskod(e.target.value)}
+                    className="max-w-[150px]"
+                  />
+                </div>
                 <Button 
                   onClick={handleGetData} 
                   disabled={isFetching}
@@ -106,6 +143,28 @@ export default function Home() {
                 >
                   {isFetching ? 'Fetching...' : 'Get Data'}
                 </Button>
+                {assignments.length > 0 && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Uppgift i Canvas
+                    </label>
+                    <Select
+                      value={selectedAssignment}
+                      onValueChange={handleAssignmentChange}
+                    >
+                      <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="Välj uppgift" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {assignments.map((assignment) => (
+                          <SelectItem key={assignment} value={assignment}>
+                            {assignment}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
               <div className="border rounded-md">
                 <Table>
