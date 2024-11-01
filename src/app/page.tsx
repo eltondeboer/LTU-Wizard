@@ -136,7 +136,9 @@ export default function Home() {
                         <TableRow key={row.stud_namn}>
                           <TableCell>{row.stud_namn}</TableCell>
                           <TableCell>{row.namn}</TableCell>
-                          <TableCell>{row.datum}</TableCell>
+                          <TableCell>
+                            {new Date(row.datum).toISOString().split('T')[0]}
+                          </TableCell>
                           <TableCell>
                             <Select
                               value={row.betyg_canvas}
