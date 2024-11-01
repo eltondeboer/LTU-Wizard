@@ -8,6 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { StudentData } from '@/types/student'
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { format } from "date-fns"
+import { CalendarIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 const GRADE_OPTIONS = ["U", "G", "VG"] as const
 type Grade = typeof GRADE_OPTIONS[number]
@@ -145,6 +150,12 @@ export default function Home() {
     )
   }
 
+  const handleDateSelect = (stud_namn: string, date: Date | undefined) => {
+    if (date) {
+      handleCellEdit(stud_namn, 'datum', date.toISOString().split('T')[0])
+    }
+  }
+
   // Check if there are unsaved changes
   const hasChanges = JSON.stringify(data) !== JSON.stringify(editedData)
 
@@ -265,7 +276,35 @@ export default function Home() {
                           <TableCell>{row.stud_namn}</TableCell>
                           <TableCell>{row.namn}</TableCell>
                           <TableCell>
-                            {new Date(row.datum).toISOString().split('T')[0]}
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-[200px] justify-start text-left font-normal truncate",
+                                    !row.datum && "text-muted-foreground"
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                                  <span className="truncate">
+                                    {row.datum ? format(new Date(row.datum), "MMMM d, yyyy") : "Pick a date"}
+                                  </span>
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent 
+                                className="w-auto p-0" 
+                                align="start"
+                                sideOffset={4}
+                              >
+                                <Calendar
+                                  mode="single"
+                                  selected={row.datum ? new Date(row.datum) : undefined}
+                                  onSelect={(date) => handleDateSelect(row.stud_namn, date)}
+                                  initialFocus
+                                  className="rounded-md border shadow"
+                                />
+                              </PopoverContent>
+                            </Popover>
                           </TableCell>
                           <TableCell>
                             <Select
