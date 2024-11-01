@@ -218,19 +218,22 @@ export default function Home() {
     )
   }
 
-  const handleDateSelect = (stud_namn: string, date: Date | undefined) => {
-    if (date) {
-      handleCellEdit(stud_namn, 'datum', date.toISOString().split('T')[0])
-    }
+  const isFutureDate = (dateStr: string): boolean => {
+    const today = new Date()
+    today.setHours(23, 59, 59, 999) // Set to end of today
+    const checkDate = new Date(dateStr)
+    checkDate.setHours(12, 0, 0, 0) // Set check date to noon to avoid timezone issues
+    return checkDate > today
   }
-
-  // Check if there are unsaved changes
-  const hasChanges = JSON.stringify(data) !== JSON.stringify(editedData)
 
   const validateRow = (row: StudentData): string[] => {
     const errors: string[] = []
     if (!row.betyg_canvas) errors.push('betyg_canvas')
-    if (!row.datum) errors.push('datum')
+    if (!row.datum) {
+      errors.push('datum')
+    } else if (isFutureDate(row.datum)) {
+      errors.push('future_date')
+    }
     if (!row.namn) errors.push('namn')
     return errors
   }
@@ -318,6 +321,39 @@ export default function Home() {
     setDialogMessage({ title, description, isError })
     setDialogOpen(true)
   }
+
+  const handleDateSelect = (stud_namn: string, date: Date | undefined) => {
+    if (date) {
+      // Adjust the date to handle timezone correctly
+      const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+      const dateString = localDate.toISOString().split('T')[0]
+
+      if (isFutureDate(dateString)) {
+        showDialog('Invalid Date', 'Cannot select a future date', true)
+        setValidationErrors(prev => ({
+          ...prev,
+          [stud_namn]: new Set([...(prev[stud_namn] || []), 'future_date'])
+        }))
+        return
+      }
+      
+      handleCellEdit(stud_namn, 'datum', dateString)
+      // Clear validation error if it exists
+      setValidationErrors(prev => {
+        const newErrors = { ...prev }
+        if (newErrors[stud_namn]) {
+          newErrors[stud_namn].delete('future_date')
+          if (newErrors[stud_namn].size === 0) {
+            delete newErrors[stud_namn]
+          }
+        }
+        return newErrors
+      })
+    }
+  }
+
+  // Check if there are unsaved changes
+  const hasChanges = JSON.stringify(data) !== JSON.stringify(editedData)
 
   return (
     <div className="min-h-screen">
@@ -499,7 +535,8 @@ export default function Home() {
                                   className={cn(
                                     "w-[200px] justify-start text-left font-normal truncate",
                                     !row.datum && "text-muted-foreground",
-                                    validationErrors[row.stud_namn]?.has('datum') && 
+                                    (validationErrors[row.stud_namn]?.has('datum') || 
+                                     validationErrors[row.stud_namn]?.has('future_date')) && 
                                     selectedRows.has(row.stud_namn) && 
                                     "border-red-500 ring-red-500"
                                   )}
