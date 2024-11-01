@@ -15,6 +15,11 @@ type Grade = typeof GRADE_OPTIONS[number]
 // Update the initial data structure to match the database
 const initialData: StudentData[] = []
 
+interface LadokModule {
+  idepok: string
+  uppgift: string
+}
+
 export default function Home() {
   const [kurskod, setKurskod] = useState<string>('')
   const [selectedAssignment, setSelectedAssignment] = useState<string>('')
@@ -23,6 +28,8 @@ export default function Home() {
   const [isFetching, setIsFetching] = useState<boolean>(false)
   const [data, setData] = useState<StudentData[]>(initialData)
   const [editedData, setEditedData] = useState<StudentData[]>(initialData)
+  const [ladokModules, setLadokModules] = useState<LadokModule[]>([])
+  const [selectedLadokModule, setSelectedLadokModule] = useState<string>('')
 
   const fetchAssignments = async (kurskod: string) => {
     try {
@@ -35,6 +42,17 @@ export default function Home() {
     }
   }
 
+  const fetchLadokModules = async (kurskod: string) => {
+    try {
+      const response = await fetch(`/api/ladok?kurskod=${kurskod}`)
+      if (!response.ok) throw new Error('Failed to fetch Ladok modules')
+      const modules = await response.json()
+      setLadokModules(modules)
+    } catch (error) {
+      console.error('Error fetching Ladok modules:', error)
+    }
+  }
+
   const handleGetData = async (): Promise<void> => {
     if (!kurskod.trim()) {
       alert('Please enter a kurskod')
@@ -43,7 +61,10 @@ export default function Home() {
 
     setIsFetching(true)
     try {
-      await fetchAssignments(kurskod)
+      await Promise.all([
+        fetchAssignments(kurskod),
+        fetchLadokModules(kurskod)
+      ])
       const response = await fetch(`/api/students?kurskod=${kurskod}${selectedAssignment ? `&uppgift=${selectedAssignment}` : ''}`)
       if (!response.ok) {
         throw new Error('Failed to fetch data')
@@ -85,9 +106,35 @@ export default function Home() {
     }, 1000)
   }
 
-  const handleSendToLadok = (): void => {
-    // This will send the saved data (not the edited data) to Ladok
-    alert(`Sending saved data to Ladok for kurskod: ${kurskod}`)
+  const handleSendToLadok = async (): Promise<void> => {
+    if (!selectedLadokModule) {
+      alert('Please select a Ladok module')
+      return
+    }
+
+    try {
+      const gradesToSend = data.map(student => ({
+        stud_namn: student.stud_namn,
+        betyg_canvas: student.betyg_canvas,
+        modul_id: selectedLadokModule,
+        kurskod: kurskod
+      }))
+
+      const response = await fetch('/api/ladok', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(gradesToSend)
+      })
+
+      if (!response.ok) throw new Error('Failed to send grades to Ladok')
+      
+      alert('Grades successfully sent to Ladok')
+    } catch (error) {
+      console.error('Error sending to Ladok:', error)
+      alert('Failed to send grades to Ladok')
+    }
   }
 
   const handleCellEdit = (stud_namn: string, field: keyof StudentData, value: string) => {
@@ -159,6 +206,28 @@ export default function Home() {
                         {assignments.map((assignment) => (
                           <SelectItem key={assignment} value={assignment}>
                             {assignment}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {ladokModules.length > 0 && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Modul i Ladok
+                    </label>
+                    <Select
+                      value={selectedLadokModule}
+                      onValueChange={setSelectedLadokModule}
+                    >
+                      <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="Välj modul" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ladokModules.map((module) => (
+                          <SelectItem key={module.idepok} value={module.idepok}>
+                            {module.uppgift}
                           </SelectItem>
                         ))}
                       </SelectContent>

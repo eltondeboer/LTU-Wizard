@@ -30,17 +30,4 @@ export async function getUniqueAssignments(kurskod: string): Promise<string[]> {
     console.error('Database error:', error)
     throw new Error('Failed to fetch assignments')
   }
-}
-
-export async function getLadokModules(kurskod: string): Promise<Array<{idepok: string, uppgift: string}>> {
-  try {
-    const [rows] = await db.execute(
-      'SELECT idepok, uppgift FROM epok WHERE kurskod = ? ORDER BY idepok',
-      [kurskod]
-    )
-    return rows as Array<{idepok: string, uppgift: string}>
-  } catch (error) {
-    console.error('Database error:', error)
-    throw new Error('Failed to fetch Ladok modules')
-  }
-}
+} 

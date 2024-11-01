@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getStudentsByKurskod, getUniqueAssignments } from '@/services/studentService'
+import { getStudentsByKurskod, getUniqueAssignments } from '@/services/canvasService'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -18,6 +18,9 @@ export async function GET(request: Request) {
     if (fetchType === 'assignments') {
       const assignments = await getUniqueAssignments(kurskod)
       return NextResponse.json(assignments)
+    } else if (fetchType === 'ladok-modules') {
+      const modules = await getLadokModules(kurskod)
+      return NextResponse.json(modules)
     } else {
       const students = await getStudentsByKurskod(kurskod, uppgift || undefined)
       return NextResponse.json(students)
