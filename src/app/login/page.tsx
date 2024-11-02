@@ -17,7 +17,7 @@ export default function LoginPage() {
     
     try {
       console.log('Attempting login...')
-      const response = await fetch('/api/auth', {
+      const response = await fetch('/api/auth/route', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -25,14 +25,15 @@ export default function LoginPage() {
         body: JSON.stringify({ password })
       })
 
-      console.log('Response status:', response.status)
+      console.log('Response:', response.status)
       
       if (response.ok) {
         console.log('Login successful, redirecting...')
         // Force a hard redirect
         window.location.href = '/'
       } else {
-        console.log('Login failed')
+        const errorData = await response.text()
+        console.log('Login failed:', errorData)
         setError('Invalid password')
       }
     } catch (error) {
