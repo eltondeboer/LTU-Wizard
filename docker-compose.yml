@@ -14,4 +14,6 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - APP_PASSWORD=${APP_PASSWORD}
+    env_file:
+      - .env
     restart: unless-stopped 
