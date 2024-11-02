@@ -13,4 +13,5 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
+      - APP_PASSWORD=${APP_PASSWORD}
     restart: unless-stopped 
