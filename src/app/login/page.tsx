@@ -13,8 +13,10 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
     
     try {
+      console.log('Attempting login...')
       const response = await fetch('/api/auth', {
         method: 'POST',
         headers: {
@@ -23,13 +25,18 @@ export default function LoginPage() {
         body: JSON.stringify({ password })
       })
 
+      console.log('Response status:', response.status)
+      
       if (response.ok) {
-        router.push('/')
-        router.refresh()
+        console.log('Login successful, redirecting...')
+        // Force a hard redirect
+        window.location.href = '/'
       } else {
+        console.log('Login failed')
         setError('Invalid password')
       }
     } catch (error) {
+      console.error('Login error:', error)
       setError('An error occurred')
     }
   }
@@ -48,6 +55,7 @@ export default function LoginPage() {
                 placeholder="Enter password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoFocus
               />
             </div>
             {error && (
