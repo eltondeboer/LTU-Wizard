@@ -4,6 +4,8 @@ export async function POST(request: Request) {
   try {
     const { password } = await request.json()
     console.log('Received auth request')
+    console.log('APP_PASSWORD:', process.env.APP_PASSWORD)
+    console.log('Received password:', password)
 
     if (!process.env.APP_PASSWORD) {
       console.error('APP_PASSWORD not set in environment')
@@ -13,18 +15,13 @@ export async function POST(request: Request) {
     if (password === process.env.APP_PASSWORD) {
       console.log('Password correct, setting cookie')
       
-      // Create response with redirect
-      const response = NextResponse.json(
-        { success: true },
-        { status: 200, headers: { 'Location': '/' } }
-      )
-
-      // Set cookie
+      const response = NextResponse.json({ success: true })
+      
       response.cookies.set('auth', 'true', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax', // Changed from 'strict' to 'lax'
-        maxAge: 60 * 60 * 24 // 24 hours
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24
       })
 
       console.log('Cookie set, returning response')
