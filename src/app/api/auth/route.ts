@@ -5,15 +5,18 @@ export async function POST(request: Request) {
   const { password } = await request.json()
 
   if (password === process.env.APP_PASSWORD) {
-    // Set a secure HTTP-only cookie
-    cookies().set('auth', 'true', {
+    // Create a response
+    const response = NextResponse.json({ success: true })
+    
+    // Set cookie on the response
+    response.cookies.set('auth', 'true', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 60 * 60 * 24 // 24 hours
     })
 
-    return NextResponse.json({ success: true })
+    return response
   }
 
   return new NextResponse('Unauthorized', { status: 401 })
