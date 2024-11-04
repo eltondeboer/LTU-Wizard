@@ -13,29 +13,6 @@ export async function sendGradesToLadok(grades: SendLadokGrade[]): Promise<void>
   const connection = await db.getConnection()
   
   try {
-    // Validate input
-    if (!Array.isArray(grades) || grades.length === 0) {
-      throw new Error('Invalid grades data: Empty or not an array')
-    }
-
-    // Validate each grade object with detailed logging
-    grades.forEach((grade, index) => {
-      console.log(`Validating grade at index ${index}:`, grade)
-      const missingFields = []
-      if (!grade.person_nr) missingFields.push('person_nr')
-      if (!grade.modul_kod) missingFields.push('modul_kod')
-      if (!grade.betyg) missingFields.push('betyg')
-      if (!grade.datum) missingFields.push('datum')
-      if (!grade.kurskod) missingFields.push('kurskod')
-      
-      if (missingFields.length > 0) {
-        throw new Error(`Invalid grade data at index ${index}. Missing fields: ${missingFields.join(', ')}`)
-      }
-    })
-
-    console.log('Starting transaction with grades:', grades)
-
-    // Start transaction
     await connection.beginTransaction()
 
     try {
@@ -43,7 +20,7 @@ export async function sendGradesToLadok(grades: SendLadokGrade[]): Promise<void>
         console.log('Attempting to insert/update grade:', grade)
         
         await connection.execute(
-          `INSERT INTO ladok (person_nr, namn, modul_kod, betyg, datum, kurskod) 
+          `INSERT INTO system.ladok (person_nr, namn, modul_kod, betyg, datum, kurskod) 
            VALUES (?, ?, ?, ?, ?, ?)
            ON DUPLICATE KEY UPDATE 
            namn = VALUES(namn),

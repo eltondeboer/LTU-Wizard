@@ -9,7 +9,7 @@ export async function getPersonNr(stud_namn: string[]): Promise<ItsData[]> {
   try {
     const placeholders = stud_namn.map(() => '?').join(',')
     const [rows] = await db.execute(
-      `SELECT stud_namn, person_nr FROM its WHERE stud_namn IN (${placeholders})`,
+      `SELECT stud_namn, person_nr FROM system.its WHERE stud_namn IN (${placeholders})`,
       stud_namn
     )
     return rows as ItsData[]

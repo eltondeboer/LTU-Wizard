@@ -1,8 +1,8 @@
 services:
   app:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: .  # Changed from ./my-app to .
+      dockerfile: Dockerfile  # Changed from /Dockerfile to Dockerfile
     ports:
       - "3000:3000"
     environment:
@@ -13,4 +13,6 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
-    restart: unless-stopped 
+    env_file:
+      - .env
+    restart: unless-stopped
