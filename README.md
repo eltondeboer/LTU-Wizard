@@ -1,9 +1,5 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Checkout live server
-
-[Running Website](http://164.90.183.208:3000/)
-
 ## Run locally
 
 First, download docker desktop:
