@@ -106,7 +106,7 @@ export default function Home() {
 
   const handleGetData = async (): Promise<void> => {
     if (!kurskod.trim()) {
-      showDialog('Error', 'Please enter a kurskod', true)
+      showDialog('Error', 'Please enter a course code', true)
       return
     }
 
@@ -379,12 +379,12 @@ export default function Home() {
               <div className="flex space-x-4 items-end">
                 <div className="space-y-2">
                   <label htmlFor="kurskod" className="text-sm font-medium">
-                    Kurskod
+                    Course code
                   </label>
                   <Input
                     id="kurskod"
                     type="text"
-                    placeholder="kurskod"
+                    placeholder="course code"
                     value={kurskod}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setKurskod(e.target.value)}
                     className="max-w-[150px]"
@@ -400,14 +400,14 @@ export default function Home() {
                 {assignments.length > 0 && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">
-                      Uppgift i Canvas
+                      Assignment in Canvas
                     </label>
                     <Select
                       value={selectedAssignment}
                       onValueChange={handleAssignmentChange}
                     >
                       <SelectTrigger className="w-[200px]">
-                        <SelectValue placeholder="Välj uppgift" />
+                        <SelectValue placeholder="Choose assignment" />
                       </SelectTrigger>
                       <SelectContent>
                         {assignments.map((assignment) => (
@@ -422,7 +422,7 @@ export default function Home() {
                 {ladokModules.length > 0 && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">
-                      Modul i Ladok
+                      Module in Ladok
                     </label>
                     <Select
                       value={selectedLadokModule}
@@ -437,7 +437,7 @@ export default function Home() {
                           "border-red-500 ring-red-500"
                         )}
                       >
-                        <SelectValue placeholder="Välj modul" />
+                        <SelectValue placeholder="Choose module" />
                       </SelectTrigger>
                       <SelectContent>
                         {ladokModules.map((module) => (
